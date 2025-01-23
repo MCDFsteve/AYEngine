@@ -1,5 +1,5 @@
 ==============================
-The Ren'Py Visual Novel Engine
+Aimes && Yuyu Engine
 ==============================
 
 https://www.renpy.org
