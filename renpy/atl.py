@@ -1,4 +1,4 @@
-# Copyright 2004-2025 Tom Rothamel <pytom@bishoujo.us>
+# Copyright 2004-2024 Tom Rothamel <pytom@bishoujo.us>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -139,6 +139,8 @@ class position(object):
             return self * (1/other)
         return NotImplemented
 
+    __div__ = __truediv__ # PY2
+
     def __pos__(self):
         return position(renpy.display.core.absolute(self.absolute), float(self.relative))
 
@@ -230,7 +232,7 @@ def interpolate(t, a, b, typ):
     """
 
     # Deal with booleans, nones, etc.
-    if b is None or isinstance(b, (bool, str, renpy.display.matrix.Matrix, renpy.display.transform.Camera)):
+    if b is None or isinstance(b, (bool, basestring, renpy.display.matrix.Matrix, renpy.display.transform.Camera)):
         if t >= 1.0:
             return b
         else:
@@ -420,7 +422,7 @@ class ATLTransformBase(renpy.object.Object):
             rv_parameters = []
             for name, value in self.context.context.items():
                 if name not in self.parameters.parameters:
-                    rv_parameters.append(ValuedParameter(name, ValuedParameter.KEYWORD_ONLY, default=value))
+                    rv_parameters.append(ValuedParameter(name, ValuedParameter.KEYWORD_ONLY, value))
             if rv_parameters:
                 rv_parameters = list(self.parameters.parameters.values()) + rv_parameters
                 rv_parameters.sort(key=lambda p: p.kind)
@@ -655,10 +657,10 @@ class ATLTransformBase(renpy.object.Object):
             #     continue
 
             if passed: # turn into elif when possible
-                param = ValuedParameter(name, param.KEYWORD_ONLY, default=scope[name])
+                param = ValuedParameter(name, param.KEYWORD_ONLY, scope[name])
 
             elif param.has_default:
-                param = ValuedParameter(name, pkind, default=scope[name])
+                param = ValuedParameter(name, pkind, scope[name])
 
             else:
                 ## not passed and no default value
@@ -951,7 +953,7 @@ class RawBlock(RawStatement):
         old_exception_info = renpy.game.exception_info
         try:
             block = self.compile(Context({}))
-        except RecursionError:
+        except RuntimeError:  # PY3: RecursionError
             raise Exception("This transform refers to itself in a cycle.")
         except Exception:
             self.constant = NOT_CONST
@@ -1332,7 +1334,7 @@ class RawMultipurpose(RawStatement):
             except Exception:
                 continue
 
-            if isinstance(i, ATLTransformBase) and (i.child is None):
+            if isinstance(i, ATLTransformBase):
                 i.atl.predict(ctx)
                 return
 

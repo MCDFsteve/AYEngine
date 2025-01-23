@@ -1,4 +1,4 @@
-# Copyright 2004-2025 Tom Rothamel <pytom@bishoujo.us>
+# Copyright 2004-2024 Tom Rothamel <pytom@bishoujo.us>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -63,7 +63,8 @@ def onetime_init():
     if os.path.exists(fn):
         dll = fn
 
-    dll = dll.encode("utf-8")
+    if not PY2:
+        dll = dll.encode("utf-8")
 
     if not renpy.gl2.live2dmodel.load(dll): # type: ignore
         raise Exception("Could not load Live2D. {} was not found.".format(dll))
@@ -86,6 +87,9 @@ def init():
 
     if live2dmodel is None:
         raise Exception("Live2D has not been built.")
+
+    if not renpy.config.gl2:
+        raise Exception("Live2D requires that config.gl2 be True.")
 
     if renpy.emscripten:
         raise Exception("Live2D is not supported the web platform.")

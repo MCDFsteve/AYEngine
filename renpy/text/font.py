@@ -1,4 +1,4 @@
-# Copyright 2004-2025 Tom Rothamel <pytom@bishoujo.us>
+# Copyright 2004-2024 Tom Rothamel <pytom@bishoujo.us>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -457,11 +457,7 @@ class ScaledImageFont(ImageFont):
             w, h = v.get_size()
             nw = scale(w)
             nh = scale(h)
-
-            if renpy.config.nearest_neighbor:
-                self.chars[k] = renpy.display.pgrender.transform_scale(v, (nw, nh))
-            else:
-                self.chars[k] = renpy.display.scale.smoothscale(v, (nw, nh))
+            self.chars[k] = renpy.display.scale.smoothscale(v, (nw, nh))
 
 
 def register_sfont(name=None, size=None, bold=False, italics=False, underline=False,

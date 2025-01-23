@@ -1,4 +1,4 @@
-# Copyright 2004-2025 Tom Rothamel <pytom@bishoujo.us>
+# Copyright 2004-2024 Tom Rothamel <pytom@bishoujo.us>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -1474,6 +1474,8 @@ python_exit_callbacks = [ ]
 # Should exceptions be raised if an image fails to load.
 raise_image_load_exceptions = None
 
+# 8.2.2
+
 # A map from name to text shader object.
 textshaders = { } # type: dict[str, renpy.text.shader.TextShader]
 
@@ -1503,21 +1505,6 @@ limit_transform_crop = False
 
 # Should as dissolve shrink to the size of the smallest child?
 dissolve_shrink = False
-
-# Marking labels, images and audio in replays as seen is not allowed.
-no_replay_seen = False
-
-# Should we use pre-8.4 show expression behavior?
-old_show_expression = False
-
-# Callbacks that give the translation system more strings to translate.
-translate_additional_strings_callbacks = [ ]
-
-# Should Ren'Py keep and existing screenshot when entering a menu.
-keep_screenshot_entering_menu = False
-
-# Should Ren'Py hash seen statements and tlids?
-hash_seen = True
 
 del os
 del collections

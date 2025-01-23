@@ -1,4 +1,4 @@
-# Copyright 2004-2025 Tom Rothamel <pytom@bishoujo.us>
+# Copyright 2004-2024 Tom Rothamel <pytom@bishoujo.us>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -53,7 +53,7 @@ def get_all_labels():
     rv = [ ]
 
     for i in renpy.game.script.namemap:
-        if isinstance(i, str):
+        if isinstance(i, basestring):
             rv.append(i)
 
     return renpy.revertable.RevertableSet(rv)
@@ -102,10 +102,13 @@ def load_module(name, **kwargs):
     renpy.game.contexts.append(context)
 
     context.make_dynamic(kwargs)
-    renpy.store.__dict__.update(kwargs)
+    renpy.store.__dict__.update(kwargs) # @UndefinedVariable
 
-    for _prio, node in initcode:
-        node.execute_init()
+    for _prio, node in initcode: # @UnusedVariable
+        if isinstance(node, renpy.ast.Node):
+            renpy.game.context().run(node)
+        else:
+            node()
 
     context.pop_all_dynamic()
 
@@ -143,7 +146,10 @@ def load_string(s, filename="<string>"):
         renpy.game.contexts.append(context)
 
         for _prio, node in initcode:
-            node.execute_init()
+            if isinstance(node, renpy.ast.Node):
+                renpy.game.context().run(node)
+            else:
+                node()
 
         context.pop_all_dynamic()
         renpy.game.contexts.pop()
@@ -193,7 +199,10 @@ def load_language(language):
         renpy.game.contexts.append(context)
 
         for _prio, node in initcode:
-            node.execute_init()
+            if isinstance(node, renpy.ast.Node):
+                renpy.game.context().run(node)
+            else:
+                node()
 
         context.pop_all_dynamic()
         renpy.game.contexts.pop()

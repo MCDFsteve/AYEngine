@@ -1,4 +1,4 @@
-# Copyright 2004-2025 Tom Rothamel <pytom@bishoujo.us>
+# Copyright 2004-2024 Tom Rothamel <pytom@bishoujo.us>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -268,7 +268,7 @@ def _find_image(layer, key, name, what):
     # If a specific image is requested, use it.
     if what is not None:
 
-        if isinstance(what, str):
+        if isinstance(what, basestring):
             what = tuple(what.split())
 
         return name, what
@@ -492,8 +492,7 @@ def show(name, at_list=[ ], layer=None, what=None, zorder=None, tag=None, behind
         img._unique()
 
     # Update the list of images we have ever seen.
-    if renpy.exports.is_seen_allowed():
-        renpy.game.persistent._seen_images[tuple(str(i) for i in name)] = True
+    renpy.game.persistent._seen_images[tuple(str(i) for i in name)] = True
 
     if tag and munge_name:
         name = (tag,) + name[1:]
@@ -582,7 +581,7 @@ def toggle_fullscreen():
     renpy.game.preferences.fullscreen = not renpy.game.preferences.fullscreen # type: ignore
 
 
-def take_screenshot(scale=None, background=False, keep_existing=False):
+def take_screenshot(scale=None, background=False):
     """
     :doc: loadsave
     :args: ()
@@ -594,7 +593,7 @@ def take_screenshot(scale=None, background=False, keep_existing=False):
     if scale is None:
         scale = (renpy.config.thumbnail_width, renpy.config.thumbnail_height)
 
-    renpy.game.interface.take_screenshot(scale, background=background, keep_existing=keep_existing)
+    renpy.game.interface.take_screenshot(scale, background=background)
 
 
 def screenshot(filename):
@@ -768,7 +767,7 @@ def get_at_list(name, layer=None):
     If `layer` is None, uses the default layer for the given tag.
     """
 
-    if isinstance(name, str):
+    if isinstance(name, basestring):
         name = tuple(name.split())
 
     tag = name[0]
@@ -1278,6 +1277,9 @@ def get_refresh_rate(precision=5):
         75, and 120), this likely will improve accuracy. Setting precision
         to 1 disables this.
     """
+
+    if PY2:
+        precision = float(precision)
 
     info = renpy.display.get_info()
     rv = info.refresh_rate # type: ignore

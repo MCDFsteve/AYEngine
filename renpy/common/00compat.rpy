@@ -1,4 +1,4 @@
-﻿# Copyright 2004-2025 Tom Rothamel <pytom@bishoujo.us>
+﻿# Copyright 2004-2024 Tom Rothamel <pytom@bishoujo.us>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -217,6 +217,7 @@ init -1100 python:
 
         if version <= (7, 4, 4):
             config.pause_after_rollback = True
+            config.gl2 = False
             config.gl_lod_bias = -1.0
             config.who_what_sub_compat = 1
 
@@ -323,9 +324,6 @@ init -1100 python:
             if not _compat_versions(version, (7, 6, 99), (8, 1, 99)):
                 config.box_reverse_align = True
                 config.limit_transform_crop = True
-
-        if version <= (8, 3, 99):
-            config.old_show_expression = True
 
 
     # The version of Ren'Py this script is intended for, or

@@ -1,4 +1,4 @@
-﻿# Copyright 2004-2025 Tom Rothamel <pytom@bishoujo.us>
+﻿# Copyright 2004-2024 Tom Rothamel <pytom@bishoujo.us>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -76,14 +76,24 @@ class BinFile(object):
         self.addr = addr
 
     def tostring(self):
-        return self.a.tobytes()
+        if PY2:
+            return self.a.tostring() # type: ignore
+        else:
+            return self.a.tobytes()
 
     def substring(self, start, len): # @ReservedAssignment
-        return self.a[start:start + len].tobytes()
+        if PY2:
+            return self.a[start:start + len].tostring() # type: ignore
+        else:
+            return self.a[start:start + len].tobytes()
 
     def __init__(self, data):
         self.a = array.array('B')
-        self.a.frombytes(data)
+
+        if PY2:
+            self.a.fromstring(data) # type: ignore
+        else:
+            self.a.frombytes(data)
 
 ##############################################################################
 # These functions parse data out of the file. In these functions, offset is

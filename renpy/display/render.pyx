@@ -1,5 +1,5 @@
 #cython: profile=False
-# Copyright 2004-2025 Tom Rothamel <pytom@bishoujo.us>
+# Copyright 2004-2024 Tom Rothamel <pytom@bishoujo.us>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -501,7 +501,6 @@ def mark_sweep():
     cdef list worklist
     cdef int i
     cdef Render r, j
-    cdef object o
 
     worklist = [ ]
 
@@ -528,12 +527,6 @@ def mark_sweep():
 
     for r in cache_renders:
         r.mark = True
-
-    if renpy.emscripten:
-        # Do not kill Renders that cache the last video frame
-        for o in renpy.display.video.texture.values():
-            if isinstance(o, Render):
-                o.mark = True
 
     for r in live_renders:
         if not r.mark:
@@ -1202,7 +1195,6 @@ cdef class Render:
         self.cached_texture = None
         self.cached_model = None
 
-    NO_MOUSE_FOCUS = renpy.object.Sentinel("NO_MOUSE_FOCUS")
 
     def add_focus(self, d, arg=None, x=0, y=0, w=None, h=None, mx=None, my=None, mask=None):
         """
@@ -1398,9 +1390,6 @@ cdef class Render:
             for (d, arg, xo, yo, w, h, mx, my, mask) in reversed(self.focuses):
 
                 if xo is None or xo is False:
-                    continue
-
-                if arg is self.NO_MOUSE_FOCUS:
                     continue
 
                 elif mx is not None:

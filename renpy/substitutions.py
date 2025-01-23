@@ -1,4 +1,4 @@
-# Copyright 2004-2025 Tom Rothamel <pytom@bishoujo.us>
+# Copyright 2004-2024 Tom Rothamel <pytom@bishoujo.us>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -29,8 +29,6 @@ import renpy
 import string
 import os
 import re
-import sys
-import collections
 
 
 update_translations = "RENPY_UPDATE_TRANSLATIONS" in os.environ
@@ -275,7 +273,7 @@ def convert(value, conv, scope):
         return value
 
     # All conversion symbols below assume we have a string.
-    if not isinstance(value, str):
+    if not isinstance(value, basestring):
         value = str(value)
 
     if 't' in conv:
@@ -284,8 +282,8 @@ def convert(value, conv, scope):
     if 'i' in conv:
         try:
             value = interpolate(value, scope)
-        except RecursionError:
-            raise ValueError(f'Substitution {value!r} refers to itself in a loop.')
+        except RuntimeError: # PY3 RecursionError
+            raise ValueError('Substitution {!r} refers to itself in a loop.'.format(value))
 
     if 'q' in conv:
         value = value.replace('{', '{{')
@@ -300,6 +298,26 @@ def convert(value, conv, scope):
         value = value[:1].capitalize() + value[1:]
 
     return value
+
+
+class MultipleDict(object):
+
+    def __init__(self, *dicts):
+        self.dicts = dicts
+
+    def __getitem__(self, key):
+        for d in self.dicts:
+            if key in d:
+                return d[key]
+
+        raise KeyError("Name '{}' is not defined.".format(key))
+
+    def __contains__(self, key):
+        for d in self.dicts:
+            if key in d:
+                return True
+
+        return False
 
 
 def substitute(s, scope=None, force=False, translate=True):
@@ -320,7 +338,7 @@ def substitute(s, scope=None, force=False, translate=True):
     occurred, or False if no substitution occurred.
     """
 
-    if not isinstance(s, str):
+    if not isinstance(s, basestring):
         s = str(s)
 
     if translate:
@@ -349,7 +367,7 @@ def substitute(s, scope=None, force=False, translate=True):
     if len(dicts) == 1:
         variables = dicts[0]
     else:
-        variables = collections.ChainMap(*dicts)
+        variables = MultipleDict(*dicts)
 
     try:
         s = interpolate(s, variables) # type: ignore
@@ -359,15 +377,3 @@ def substitute(s, scope=None, force=False, translate=True):
         raise
 
     return s, (s != old_s)
-
-
-def ___(s):
-    """
-    :undocumented: Documented directly in the .rst.
-
-    Translates a string, then performs substitutions on it.
-    """
-
-    scope = sys._getframe(1).f_locals
-
-    return substitute(s, scope)[0]

@@ -1,4 +1,4 @@
-﻿# Copyright 2004-2025 Tom Rothamel <pytom@bishoujo.us>
+﻿# Copyright 2004-2024 Tom Rothamel <pytom@bishoujo.us>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -544,8 +544,12 @@ init -1500 python:
             if type(self) is not type(other):
                 return False
 
-            if self.callable != other.callable:
-                return False
+            if PY2:
+                if self.callable is not other.callable:
+                    return False
+            else:
+                if self.callable != other.callable:
+                    return False
 
             if self.args != other.args:
                 return False

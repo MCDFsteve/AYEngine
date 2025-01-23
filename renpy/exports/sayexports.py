@@ -1,4 +1,4 @@
-# Copyright 2004-2025 Tom Rothamel <pytom@bishoujo.us>
+# Copyright 2004-2024 Tom Rothamel <pytom@bishoujo.us>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -37,7 +37,7 @@ class TagQuotingDict(object):
         if key in store:
             rv = store[key]
 
-            if isinstance(rv, str):
+            if isinstance(rv, basestring):
                 rv = rv.replace("{", "{{")
 
             return rv
@@ -60,7 +60,7 @@ def predict_say(who, what):
     if who is None:
         who = renpy.store.narrator # type: ignore
 
-    if isinstance(who, str):
+    if isinstance(who, basestring):
         return renpy.store.predict_say(who, what)
 
     predict = getattr(who, 'predict', None)
@@ -126,7 +126,7 @@ def say(who, what, *args, **kwargs):
     if renpy.config.say_arguments_callback:
         args, kwargs = renpy.config.say_arguments_callback(who, *args, **kwargs)
 
-    if isinstance(who, str):
+    if isinstance(who, basestring):
         renpy.store.say(who, what, *args, **kwargs)
     else:
         who(what, *args, **kwargs)

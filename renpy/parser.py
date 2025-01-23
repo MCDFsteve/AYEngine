@@ -1,4 +1,4 @@
-# Copyright 2004-2025 Tom Rothamel <pytom@bishoujo.us>
+# Copyright 2004-2024 Tom Rothamel <pytom@bishoujo.us>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -31,7 +31,7 @@ import time
 import renpy
 import renpy.ast as ast
 
-from renpy.parameter import EMPTY_ARGUMENTS, Parameter
+from renpy.parameter import Parameter
 
 from renpy.lexer import (
     list_logical_lines,
@@ -475,9 +475,6 @@ def parse_arguments(l):
     if not l.match(r'\('):
         return None
 
-    if l.match(r'\)'):
-        return EMPTY_ARGUMENTS
-
     arguments = [ ]
     starred_indexes = set()
     doublestarred_indexes = set()
@@ -723,8 +720,7 @@ def menu_statement(l, loc):
     rv.extend(menu)
 
     for i in rv:
-        if isinstance(rv, renpy.ast.Menu):
-            i.statement_start = rv[0]
+        i.statement_start = rv[0]
 
     return rv
 

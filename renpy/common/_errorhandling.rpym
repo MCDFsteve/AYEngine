@@ -1,4 +1,4 @@
-﻿# Copyright 2004-2025 Tom Rothamel <pytom@bishoujo.us>
+﻿# Copyright 2004-2024 Tom Rothamel <pytom@bishoujo.us>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -96,7 +96,7 @@ init label _errorhandling:
         adjust_spacing True
         emoji_font "TwemojiCOLRv0.ttf"
         prefer_emoji True
-        shaper "harfbuzz"
+        shaper ("harfbuzz" if (not PY2) else "freetype")
 
         # Window properties
         background None
@@ -561,15 +561,7 @@ init python:
 
         def __call__(self):
             try:
-                if renpy.android:
-                    try:
-                        import jnius
-                        activity = jnius.autoclass("org.renpy.android.PythonSDLActivity")
-                        activity.mActivity.openEditor(renpy.exports.fsencode(self.filename))
-                    except Exception:
-                        traceback.print_exc()
-                else:
-                    renpy.launch_editor([ self.filename ], self.line, transient=1)
+                renpy.launch_editor([ self.filename ], self.line, transient=1)
             except Exception:
                 pass
 
@@ -678,7 +670,7 @@ init python:
 # added arguments.
 screen _exception_actions(traceback_fn, tt, *args):
 
-    if not any([renpy.ios, renpy.emscripten]):
+    if not renpy.mobile:
         textbutton _("Open"):
             action _EditFile(traceback_fn)
             hovered tt.action(_("Opens the traceback.txt file in a text editor."))

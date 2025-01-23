@@ -1,4 +1,4 @@
-# Copyright 2004-2025 Tom Rothamel <pytom@bishoujo.us>
+# Copyright 2004-2024 Tom Rothamel <pytom@bishoujo.us>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -108,17 +108,11 @@ def cycle_finder(o, name):
         if isinstance(o, (int, float, type(None), types.ModuleType, type)):
             o_repr = repr(o)
 
-        elif isinstance(o, str):
+        elif isinstance(o, basestring):
             if len(o) <= 80:
-                o_repr = repr(o)
+                o_repr = repr(o).encode("utf-8")
             else:
-                o_repr = repr(o[:40] + "..." + o[-40:])
-
-        elif isinstance(o, bytes):
-            if len(o) <= 80:
-                o_repr = repr(o)
-            else:
-                o_repr = repr(o[:40] + b"..." + o[-40:])
+                o_repr = repr(o[:80] + "...").encode("utf-8")
 
         elif isinstance(o, (tuple, list)):
             o_repr = "<" + o.__class__.__name__ + ">"
@@ -127,7 +121,10 @@ def cycle_finder(o, name):
             o_repr = "<" + o.__class__.__name__ + ">"
 
         elif isinstance(o, types.MethodType):
-            o_repr = "<method {0}.{1}>".format(o.__self__.__class__.__name__, o.__name__)
+            if PY2:
+                o_repr = "<method {0}.{1}>".format(o.__self__.__class__.__name__, o.__func__.__name__) # type: ignore
+            else:
+                o_repr = "<method {0}.{1}>".format(o.__self__.__class__.__name__, o.__name__)
 
         elif isinstance(o, object):
             o_repr = "<{0}>".format(type(o).__name__)

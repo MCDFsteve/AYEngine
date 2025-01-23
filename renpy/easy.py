@@ -1,4 +1,4 @@
-# Copyright 2004-2025 Tom Rothamel <pytom@bishoujo.us>
+# Copyright 2004-2024 Tom Rothamel <pytom@bishoujo.us>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -34,8 +34,10 @@ import renpy
 Color = renpy.color.Color
 color = renpy.color.Color
 
-
-from collections.abc import Iterable
+if PY2:
+    from collections import Iterable # type: ignore
+else:
+    from collections.abc import Iterable
 
 
 def lookup_displayable_prefix(d):
@@ -64,7 +66,7 @@ def displayable_or_none(d, scope=None, dynamic=True): # type: (Any, dict|None, b
     if d is None:
         return d
 
-    if isinstance(d, str):
+    if isinstance(d, basestring):
         if not d:
             raise Exception("An empty string cannot be used as a displayable.")
         elif ("[" in d) and renpy.config.dynamic_images and dynamic:
@@ -110,7 +112,7 @@ def displayable(d, scope=None): # type(d, dict|None=None) -> renpy.display.displ
     if isinstance(d, renpy.display.displayable.Displayable):
         return d
 
-    if isinstance(d, str):
+    if isinstance(d, basestring):
         if not d:
             raise Exception("An empty string cannot be used as a displayable.")
         elif ("[" in d) and renpy.config.dynamic_images:
@@ -173,7 +175,7 @@ def dynamic_image(d, scope=None, prefix=None, search=None): # type: (Any, dict|N
 
     for i in d:
 
-        if not isinstance(i, str):
+        if not isinstance(i, basestring):
             continue
 
         if (prefix is not None) and ("[prefix_" in i):

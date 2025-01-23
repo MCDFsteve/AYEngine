@@ -1,4 +1,4 @@
-﻿# Copyright 2004-2025 Tom Rothamel <pytom@bishoujo.us>
+﻿# Copyright 2004-2024 Tom Rothamel <pytom@bishoujo.us>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -157,11 +157,13 @@ screen front_page_project:
                 label _("Open Directory") style "l_label_small"
 
                 frame style "l_indent":
-                    has grid 2 max(5, (len(p.get_renpy_launcher()["open_directory"]) + 1) // 2):
-                        transpose True xfill True
+                    has vbox
 
-                    for button_name, path in p.get_renpy_launcher()["open_directory"].items():
-                        textbutton button_name action OpenDirectory(os.path.join(p.path, path), absolute=True)
+                    textbutton "game" action OpenDirectory(os.path.join(p.path, "game"), absolute=True)
+                    textbutton "base" action OpenDirectory(os.path.join(p.path, "."), absolute=True)
+                    textbutton "images" action OpenDirectory(os.path.join(p.path, "game/images"), absolute=True)
+                    textbutton "audio" action OpenDirectory(os.path.join(p.path, "game/audio"), absolute=True)
+                    textbutton "gui" action OpenDirectory(os.path.join(p.path, "game/gui"), absolute=True)
 
             vbox:
                 if persistent.show_edit_funcs:
@@ -171,8 +173,10 @@ screen front_page_project:
                     frame style "l_indent":
                         has vbox
 
-                        for button_name, path in p.get_renpy_launcher()["edit_file"].items():
-                            textbutton button_name action editor.Edit(path, check=True)
+                        textbutton "script.rpy" action editor.Edit("game/script.rpy", check=True)
+                        textbutton "options.rpy" action editor.Edit("game/options.rpy", check=True)
+                        textbutton "gui.rpy" action editor.Edit("game/gui.rpy", check=True)
+                        textbutton "screens.rpy" action editor.Edit("game/screens.rpy", check=True)
 
                         if editor.CanEditProject():
                             textbutton _("Open project") action editor.EditProject()

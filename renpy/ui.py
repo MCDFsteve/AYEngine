@@ -1,4 +1,4 @@
-# Copyright 2004-2025 Tom Rothamel <pytom@bishoujo.us>
+# Copyright 2004-2024 Tom Rothamel <pytom@bishoujo.us>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -442,7 +442,10 @@ screen = None # type: renpy.display.screen.ScreenDisplayable|None
 class Wrapper(renpy.object.Object):
 
     def __reduce__(self):
-        return self.name
+        if PY2:
+            return bytes(self.name) # type: ignore
+        else:
+            return self.name
 
     def __init__(self, function, one=False, many=False, imagemap=False, replaces=False, style=None, **kwargs):
 
@@ -864,9 +867,9 @@ def menu(menuitems,
                 text = choice_chosen_style
                 button = choice_chosen_button_style
 
-            if isinstance(button, str):
+            if isinstance(button, basestring):
                 button = getattr(renpy.game.style, button)
-            if isinstance(text, str):
+            if isinstance(text, basestring):
                 text = getattr(renpy.game.style, text)
 
             button = button[label]
@@ -893,7 +896,7 @@ def imagemap_compat(ground,
                     button_style='hotspot',
                     **properties):
 
-    if isinstance(button_style, str):
+    if isinstance(button_style, basestring):
         button_style = getattr(renpy.game.style, button_style)
 
     fixed(style=style, **properties)
@@ -1075,7 +1078,7 @@ def _bar(*args, **properties):
             else:
                 style = value.get_style()[0]
 
-            if isinstance(style, str):
+            if isinstance(style, basestring):
                 style = prefixed_style(style)
 
             properties["style"] = style
@@ -1435,8 +1438,8 @@ returns = renpy.curry.curry(_returns)
 
 def _jumps(label, transition=None):
 
-    if isinstance(transition, str):
-        transition = getattr(renpy.config, transition)
+    if isinstance(transition, basestring):
+        transition = getattr(renpy.config, transition) # type: ignore
 
     if transition is not None:
         renpy.exports.transition(transition)

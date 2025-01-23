@@ -1,4 +1,4 @@
-# Copyright 2004-2025 Tom Rothamel <pytom@bishoujo.us>
+# Copyright 2004-2024 Tom Rothamel <pytom@bishoujo.us>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -807,8 +807,6 @@ class SayBehavior(renpy.display.layout.Null):
 
             if ev.type == renpy.display.core.TIMEEVENT and st >= skip_delay:
 
-                tlid = renpy.game.context().translate_identifier
-
                 if ev.modal:
                     return None
                 elif renpy.game.preferences.skip_unseen:
@@ -816,8 +814,6 @@ class SayBehavior(renpy.display.layout.Null):
                 elif renpy.config.skipping == "fast":
                     return True
                 elif renpy.game.context().seen_current(True):
-                    return True
-                elif tlid and renpy.exports.seen_translation(tlid):
                     return True
                 else:
                     renpy.config.skipping = None
@@ -1417,7 +1413,6 @@ class Input(renpy.text.text.Text): # @UndefinedVariable
     shown = False
     multiline = False
     action = None
-    arrowkeys = True
 
     st = 0
 
@@ -1439,7 +1434,6 @@ class Input(renpy.text.text.Text): # @UndefinedVariable
                  caret_blink=None,
                  multiline=False,
                  action=None,
-                 arrowkeys=True,
                  **properties):
 
         super(Input, self).__init__("", style=style, replaces=replaces, substitute=False, **properties)
@@ -1477,8 +1471,6 @@ class Input(renpy.text.text.Text): # @UndefinedVariable
         self.multiline = multiline
 
         self.action = action
-
-        self.arrowkeys = arrowkeys
 
         caretprops = { 'color' : None }
 
@@ -1697,7 +1689,7 @@ class Input(renpy.text.text.Text): # @UndefinedVariable
             if not self.changed:
                 return content
 
-        elif map_event(ev, "input_left") and self.arrowkeys:
+        elif map_event(ev, "input_left"):
             if self.caret_pos > 0:
                 self.caret_pos -= 1
                 self.update_text(self.content, self.editable)
@@ -1705,7 +1697,7 @@ class Input(renpy.text.text.Text): # @UndefinedVariable
             renpy.display.render.redraw(self, 0)
             raise renpy.display.core.IgnoreEvent()
 
-        elif map_event(ev, "input_jump_word_left") and self.arrowkeys:
+        elif map_event(ev, "input_jump_word_left"):
             if self.caret_pos > 0:
                 space_pos = 0
                 for item in re.finditer(r"\s+", self.content[:self.caret_pos]):
@@ -1718,7 +1710,7 @@ class Input(renpy.text.text.Text): # @UndefinedVariable
             renpy.display.render.redraw(self, 0)
             raise renpy.display.core.IgnoreEvent()
 
-        elif map_event(ev, "input_right") and self.arrowkeys:
+        elif map_event(ev, "input_right"):
             if self.caret_pos < l:
                 self.caret_pos += 1
                 self.update_text(self.content, self.editable)
@@ -1726,7 +1718,7 @@ class Input(renpy.text.text.Text): # @UndefinedVariable
             renpy.display.render.redraw(self, 0)
             raise renpy.display.core.IgnoreEvent()
 
-        elif map_event(ev, "input_jump_word_right") and self.arrowkeys:
+        elif map_event(ev, "input_jump_word_right"):
             if self.caret_pos < l:
                 space_pos = l
                 for item in re.finditer(r"\s+", self.content[self.caret_pos + 1:]):
@@ -2293,8 +2285,6 @@ class Bar(renpy.display.displayable.Displayable):
         self.adjustment = adjustment
         self.focusable = True
 
-        self.thumb_align = properties.pop("thumb_align", 0.0)
-
         # These are set when we are first rendered.
         self.thumb_dim = 0
         self.height = 0
@@ -2378,26 +2368,19 @@ class Bar(renpy.display.displayable.Displayable):
         else:
             thumb_dim = active
 
-        if isinstance(self.style.thumb_offset, tuple):
-            fore_thumb_offset = abs(self.style.thumb_offset[0])
-            aft_thumb_offset = abs(self.style.thumb_offset[1])
-        else:
-            fore_thumb_offset = abs(self.style.thumb_offset)
-            aft_thumb_offset = fore_thumb_offset
+        thumb_offset = abs(self.style.thumb_offset)
 
         if bar_vertical:
             thumb = render(self.style.thumb, width, thumb_dim, st, at)
             thumb_shadow = render(self.style.thumb_shadow, width, thumb_dim, st, at)
             thumb_dim = thumb.height
-            thumb_dim2 = thumb.width
         else:
             thumb = render(self.style.thumb, thumb_dim, height, st, at)
             thumb_shadow = render(self.style.thumb_shadow, thumb_dim, height, st, at)
             thumb_dim = thumb.width
-            thumb_dim2 = thumb.height
 
         # Remove the offset from the thumb.
-        thumb_dim -= fore_thumb_offset + aft_thumb_offset
+        thumb_dim -= thumb_offset * 2
         self.thumb_dim = thumb_dim
 
         active -= thumb_dim
@@ -2414,8 +2397,6 @@ class Bar(renpy.display.displayable.Displayable):
         fore_size += fore_gutter
         aft_size += aft_gutter
 
-        thumb_align = self.thumb_align
-
         rv = renpy.display.render.Render(width, height)
 
         if bar_vertical:
@@ -2423,47 +2404,37 @@ class Bar(renpy.display.displayable.Displayable):
             if self.style.bar_resizing:
                 foresurf = render(self.style.fore_bar, width, fore_size, st, at)
                 aftsurf = render(self.style.aft_bar, width, aft_size, st, at)
-                fore_leftover = (thumb_dim2 - foresurf.width) * thumb_align
-                aft_leftover = (thumb_dim2 - aftsurf.width) * thumb_align
-
-                rv.blit(thumb_shadow, (0, fore_size - fore_thumb_offset))
-                rv.blit(foresurf, (fore_leftover, 0), main=False)
-                rv.blit(aftsurf, (aft_leftover, height - aft_size), main=False)
-                rv.blit(thumb, (0, fore_size - fore_thumb_offset))
+                rv.blit(thumb_shadow, (0, fore_size - thumb_offset))
+                rv.blit(foresurf, (0, 0), main=False)
+                rv.blit(aftsurf, (0, height - aft_size), main=False)
+                rv.blit(thumb, (0, fore_size - thumb_offset))
 
             else:
                 foresurf = render(self.style.fore_bar, width, height, st, at)
                 aftsurf = render(self.style.aft_bar, width, height, st, at)
-                fore_leftover = (thumb_dim2 - foresurf.width) * self.thumb_align
-                aft_leftover = (thumb_dim2 - aftsurf.width) * self.thumb_align
 
-                rv.blit(thumb_shadow, (0, fore_size - fore_thumb_offset))
-                rv.blit(foresurf.subsurface((0, 0, width, fore_size)), (fore_leftover, 0), main=False)
-                rv.blit(aftsurf.subsurface((0, height - aft_size, width, aft_size)), (aft_leftover, height - aft_size), main=False)
-                rv.blit(thumb, (0, fore_size - fore_thumb_offset))
+                rv.blit(thumb_shadow, (0, fore_size - thumb_offset))
+                rv.blit(foresurf.subsurface((0, 0, width, fore_size)), (0, 0), main=False)
+                rv.blit(aftsurf.subsurface((0, height - aft_size, width, aft_size)), (0, height - aft_size), main=False)
+                rv.blit(thumb, (0, fore_size - thumb_offset))
 
         else:
             if self.style.bar_resizing:
                 foresurf = render(self.style.fore_bar, fore_size, height, st, at)
                 aftsurf = render(self.style.aft_bar, aft_size, height, st, at)
-                fore_leftover = (thumb_dim2 - foresurf.height) * self.thumb_align
-                aft_leftover = (thumb_dim2 - aftsurf.height) * self.thumb_align
-
-                rv.blit(thumb_shadow, (fore_size - fore_thumb_offset, 0))
-                rv.blit(foresurf, (0, fore_leftover), main=False)
-                rv.blit(aftsurf, (width - aft_size, aft_leftover), main=False)
-                rv.blit(thumb, (fore_size - fore_thumb_offset, 0))
+                rv.blit(thumb_shadow, (fore_size - thumb_offset, 0))
+                rv.blit(foresurf, (0, 0), main=False)
+                rv.blit(aftsurf, (width - aft_size, 0), main=False)
+                rv.blit(thumb, (fore_size - thumb_offset, 0))
 
             else:
                 foresurf = render(self.style.fore_bar, width, height, st, at)
                 aftsurf = render(self.style.aft_bar, width, height, st, at)
-                fore_leftover = (thumb_dim2 - foresurf.height) * self.thumb_align
-                aft_leftover = (thumb_dim2 - aftsurf.height) * self.thumb_align
 
-                rv.blit(thumb_shadow, (fore_size - fore_thumb_offset, 0))
-                rv.blit(foresurf.subsurface((0, 0, fore_size, height)), (0, fore_leftover), main=False)
-                rv.blit(aftsurf.subsurface((width - aft_size, 0, aft_size, height)), (width - aft_size, aft_leftover), main=False)
-                rv.blit(thumb, (fore_size - fore_thumb_offset, 0))
+                rv.blit(thumb_shadow, (fore_size - thumb_offset, 0))
+                rv.blit(foresurf.subsurface((0, 0, fore_size, height)), (0, 0), main=False)
+                rv.blit(aftsurf.subsurface((width - aft_size, 0, aft_size, height)), (width - aft_size, 0), main=False)
+                rv.blit(thumb, (fore_size - thumb_offset, 0))
 
         if self.focusable:
             rv.add_focus(self, None, 0, 0, width, height)
@@ -2843,7 +2814,7 @@ class OnEvent(renpy.display.displayable.Displayable):
         self.action = action
 
     def is_event(self, event):
-        if isinstance(self.event_name, str):
+        if isinstance(self.event_name, basestring):
             return self.event_name == event
         else:
             return event in self.event_name
@@ -3044,7 +3015,7 @@ class WebInput(renpy.display.displayable.Displayable):
 
     @staticmethod
     def post_find_focusable():
-        if not renpy.emscripten:
+        if PY2 or not renpy.emscripten:
             return
 
         if WebInput.active is None:

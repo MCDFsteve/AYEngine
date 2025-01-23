@@ -1,4 +1,5 @@
-# Copyright 2004-2025 Tom Rothamel <pytom@bishoujo.us>
+#@PydevCodeAnalysisIgnore
+# Copyright 2004-2024 Tom Rothamel <pytom@bishoujo.us>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -36,7 +37,7 @@ import renpy.config
 cdef extern from "ftsupport.h":
     char *freetype_error_to_string(int error)
 
-cdef extern from "harfbuzz/hb.h":
+cdef extern from "hb.h":
 
     ctypedef int hb_bool_t
 
@@ -130,7 +131,7 @@ cdef extern from "harfbuzz/hb.h":
         unsigned int num_features);
 
 
-cdef extern from "harfbuzz/hb-ft.h":
+cdef extern from "hb-ft.h":
     hb_face_t *hb_ft_face_create(FT_Face ft_face, hb_destroy_func_t *destroy)
     hb_font_t *hb_ft_font_create(FT_Face ft_face, hb_destroy_func_t *destroy)
     hb_bool_t hb_ft_font_changed(hb_font_t *font)
@@ -138,7 +139,7 @@ cdef extern from "harfbuzz/hb-ft.h":
     void hb_ft_font_set_load_flags (hb_font_t *font, int load_flags)
 
 
-cdef extern from "harfbuzz/hb-ot.h":
+cdef extern from "hb-ot.h":
     ctypedef unsigned int hb_ot_name_id_t
     struct hb_language_impl_t
     ctypedef const hb_language_impl_t *hb_language_t
@@ -245,7 +246,7 @@ cdef bint is_zerowidth(unsigned int char):
 
     return False
 
-cdef unsigned long io_func(FT_Stream stream, unsigned long offset, unsigned char *buffer, unsigned long count) noexcept:
+cdef unsigned long io_func(FT_Stream stream, unsigned long offset, unsigned char *buffer, unsigned long count):
     """
     Seeks to offset, and then reads count bytes from the stream into buffer.
     """
@@ -282,7 +283,7 @@ cdef unsigned long io_func(FT_Stream stream, unsigned long offset, unsigned char
 
     return count
 
-cdef void close_func(FT_Stream stream) noexcept:
+cdef void close_func(FT_Stream stream):
     """
     Close the stream.
 

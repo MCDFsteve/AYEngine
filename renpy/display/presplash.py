@@ -1,4 +1,4 @@
-# Copyright 2004-2025 Tom Rothamel <pytom@bishoujo.us>
+# Copyright 2004-2024 Tom Rothamel <pytom@bishoujo.us>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -248,12 +248,14 @@ def progress(kind, done, total):
     if done == total:
         return
 
-    if progress_kind != kind:
-        print()
-        print(kind)
-        progress_kind = kind
-        sys.stdout.flush()
+    if not PY2:
 
-    emscripten.run_script(r"""progress(%d, %d);""" % (done, total))
+        if progress_kind != kind:
+            print()
+            print(kind)
+            progress_kind = kind
+            sys.stdout.flush()
+
+        emscripten.run_script(r"""progress(%d, %d);""" % (done, total))
 
     emscripten.sleep(0)

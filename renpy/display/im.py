@@ -1,4 +1,4 @@
-# Copyright 2004-2025 Tom Rothamel <pytom@bishoujo.us>
+# Copyright 2004-2024 Tom Rothamel <pytom@bishoujo.us>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -1200,14 +1200,13 @@ def ramp(start, end):
     rv = ramp_cache.get((start, end), None)
     if rv is None:
 
-        chars: list[int] = [ ]
+        chars = [ ]
 
         for i in range(0, 256):
             i = i / 255.0
-            i = end * i + start * (1.0 - i)
-            chars.append(int(i))
+            chars.append(bchr(int(end * i + start * (1.0 - i))))
 
-        rv = bytes(chars)
+        rv = b"".join(chars)
         ramp_cache[start, end] = rv
 
     return rv
@@ -2025,7 +2024,7 @@ def image(arg, loose=False, **properties):
     if isinstance(arg, ImageBase):
         return arg
 
-    elif isinstance(arg, str):
+    elif isinstance(arg, basestring):
         return Image(arg, **properties)
 
     elif isinstance(arg, renpy.display.image.ImageReference):

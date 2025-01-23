@@ -1,4 +1,4 @@
-# Copyright 2004-2025 Tom Rothamel <pytom@bishoujo.us>
+# Copyright 2004-2024 Tom Rothamel <pytom@bishoujo.us>
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -32,7 +32,6 @@ import threading
 import copy
 import gc
 import atexit
-import platform
 
 import pygame_sdl2 as pygame
 import renpy
@@ -258,6 +257,12 @@ class absolute(float):
         return absolute(absolute.compute_raw(value, room))
 
 for fn in (
+    '__coerce__', # PY2
+    '__div__', # PY2
+    '__long__', # PY2
+    '__nonzero__', # PY2
+    '__rdiv__', # PY2
+
     '__abs__',
     '__add__',
     # '__bool__', # non-float
@@ -298,10 +303,11 @@ for fn in (
     # 'hex', # non-float
     # 'is_integer', # non-float
 ):
-    f = getattr(float, fn)
-    setattr(absolute, fn, absolute_wrap(f))
+    f = getattr(float, fn, None)
+    if f is not None: # for PY2-only and PY3-only methods
+        setattr(absolute, fn, absolute_wrap(f))
 
-del absolute_wrap, fn, f  # type: ignore
+del absolute_wrap, fn, f # type: ignore
 
 
 
@@ -1127,7 +1133,7 @@ class Interface(object):
         if renpy.android:
             from jnius import autoclass
             PythonSDLActivity = autoclass("org.renpy.android.PythonSDLActivity")
-            PythonSDLActivity.mActivity.hidePresplash()
+            PythonSDLActivity.hidePresplash()
 
             print("Hid presplash.")
 
@@ -1195,17 +1201,24 @@ class Interface(object):
         renpy.config.renderer = renderer
 
         if renpy.android or renpy.ios or renpy.emscripten:
-            renderers = [ "gles2" ]
+            renderers = [ "gles" ]
         elif renpy.windows:
-            renderers = [ "gl2", "angle2", "gles2" ]
-        elif renpy.linux and platform.machine() == "aarch64":
-            renderers = [ "gles2", "gl2" ]
+            renderers = [ "gl", "angle", "gles" ]
         else:
-            renderers = [ "gl2", "gles2" ]
+            renderers = [ "gl", "gles" ]
+
+        gl2_renderers = [ ]
+
+        for i in [ "gl", "angle", "gles" ]:
+
+            if i in renderers:
+                gl2_renderers.append(i + "2")
+
+        renderers = gl2_renderers + renderers
 
         # Prevent a performance warning if the renderer
         # is taken from old persistent data.
-        if renderer not in renderers:
+        if renderer not in gl2_renderers and (renpy.macintosh or renpy.android or renpy.config.gl2):
             renderer = "auto"
 
         # Software renderer is the last hope for PC .
@@ -1240,6 +1253,10 @@ class Interface(object):
                 renpy.display.log.exception()
 
                 return False
+
+        make_draw("gl", "renpy.gl.gldraw", "GLDraw", "gl")
+        make_draw("angle", "renpy.gl.gldraw", "GLDraw", "angle")
+        make_draw("gles", "renpy.gl.gldraw", "GLDraw", "gles")
 
         make_draw("gl2", "renpy.gl2.gl2draw", "GL2Draw", "gl2")
         make_draw("angle2", "renpy.gl2.gl2draw", "GL2Draw", "angle2")
@@ -1347,6 +1364,7 @@ class Interface(object):
             raise Exception("Could not set video mode.")
 
         renpy.session["renderer"] = draw.info["renderer"]
+        renpy.game.persistent._gl2 = renpy.config.gl2
 
         if renpy.android:
             android.init()
@@ -1389,7 +1407,7 @@ class Interface(object):
             self.after_first_frame()
             self.first_frame = False
 
-    def take_screenshot(self, scale, background=False, keep_existing=False):
+    def take_screenshot(self, scale, background=False):
         """
         This takes a screenshot of the current screen, and stores it so
         that it can gotten using get_screenshot()
@@ -1397,13 +1415,7 @@ class Interface(object):
         `background`
            If true, we're in a background thread. So queue the request
            until it can be handled by the main thread.
-
-        `keep_existing`
-            If true, the existing screenshot is kept.
         """
-
-        if self.screenshot and keep_existing:
-            return
 
         self.clear_screenshot = False
 
@@ -2829,7 +2841,7 @@ class Interface(object):
                         renpy.game.preferences.fullscreen = False
 
                     if renpy.game.preferences.fullscreen != self.fullscreen:
-                        if renpy.emscripten:
+                        if (not PY2) and renpy.emscripten:
                             if renpy.game.preferences.fullscreen:
                                 emscripten.run_script("setFullscreen(true);")
                             else:
